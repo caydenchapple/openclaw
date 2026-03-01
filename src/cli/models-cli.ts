@@ -23,6 +23,7 @@ import {
   modelsScanCommand,
   modelsSetCommand,
   modelsSetImageCommand,
+  modelsSetInteractiveCommand,
   modelsStatusCommand,
 } from "../commands/models.js";
 import { defaultRuntime } from "../runtime.js";
@@ -116,11 +117,15 @@ export function registerModelsCli(program: Command) {
 
   models
     .command("set")
-    .description("Set the default model")
-    .argument("<model>", "Model id or alias")
-    .action(async (model: string) => {
+    .description("Set the default model (interactive picker when no model given)")
+    .argument("[model]", "Model id or alias (omit for interactive picker)")
+    .action(async (model?: string) => {
       await runModelsCommand(async () => {
-        await modelsSetCommand(model, defaultRuntime);
+        if (model) {
+          await modelsSetCommand(model, defaultRuntime);
+        } else {
+          await modelsSetInteractiveCommand(defaultRuntime);
+        }
       });
     });
 

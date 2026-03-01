@@ -31,6 +31,28 @@ cache and support `--json`/`-j` for scripting. Run `peekaboo` or
 `peekaboo <cmd> --help` for flags; `peekaboo --version` prints build metadata.
 Tip: run via `polter peekaboo` to ensure fresh builds.
 
+## How to act like a human user
+
+Operate the computer fluidly, not in robotic screenshot-action-screenshot loops.
+
+- **Orient once, then act.** Run `see --annotate` once to map out the UI.
+  Then chain many actions (click, type, tab, hotkey, click) without
+  re-capturing. Only `see` again after navigating to a new screen or when
+  something unexpected happens.
+- **Prefer keyboard shortcuts** over menu/mouse clicks: Cmd+T, Cmd+W, Cmd+L,
+  Cmd+C/V/Z/S, Cmd+Space, Cmd+Tab, Tab/Shift+Tab, Enter, Escape.
+  Use `hotkey` and `press` for these.
+- **Use spatial memory.** After one `see`, remember where elements are.
+  Standard UI patterns are predictable (URL bar at top, close buttons
+  top-left, sidebar left, buttons bottom-right). Act on known positions.
+- **Move naturally.** Use `move --smooth` and `--profile human` for cursor
+  movement. Use `--wpm` on `type` for realistic typing speed.
+- **Batch form filling.** Click first field, type, press tab, type next, tab,
+  type, press return. Do not `see` between each field.
+- **Wait smartly.** Use `sleep` for known delays. Do not screenshot-poll.
+- **Recover, do not restart.** If an action fails, `see` to reassess and
+  adjust. Do not redo the entire sequence from scratch.
+
 ## Features (all CLI capabilities, excluding agent/MCP)
 
 Core
@@ -183,6 +205,32 @@ peekaboo hotkey --keys "cmd,shift,t"
 peekaboo press escape
 peekaboo type "Line 1\nLine 2" --delay 10
 ```
+
+## Learning and adaptation
+
+After every desktop automation task, record what you learned in
+`memory/automation.md` so future tasks are faster:
+
+- **Element IDs**: stable element IDs (from `see --annotate`) for frequently
+  used buttons, fields, and controls in each app. Once known, use them
+  directly without re-running `see`.
+- **App profiles**: window titles, menu paths, common dialog patterns, and
+  reliable targeting strategies per app.
+- **Working workflows**: end-to-end sequences that succeeded. Store them as
+  reusable recipes so you can replay them without any screenshots.
+- **Timing**: how long apps take to launch, load content, or respond to input.
+  Use these to `sleep` the right amount instead of polling.
+- **Failures and fixes**: missed clicks, stale snapshots, permission dialogs
+  that appeared unexpectedly, and how you recovered.
+- **Screen setup**: display resolution, scaling, and anchor coordinates.
+
+Before starting an automation task, run `memory_search` with a query describing
+the task. If you have done it before, replay the known workflow directly
+without capturing first. Only `see` if the workflow fails or the context has
+changed.
+
+Over time you should need fewer and fewer screenshots as you build up
+knowledge of the user's apps and screen layout.
 
 Notes
 

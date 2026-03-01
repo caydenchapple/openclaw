@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import type { Command } from "commander";
 import JSON5 from "json5";
+import { approvalsTrustCommand } from "../commands/approvals-trust.js";
 import {
   readExecApprovalsSnapshot,
   saveExecApprovals,
@@ -479,4 +480,16 @@ export function registerExecApprovalsCli(program: Command) {
       return true;
     },
   });
+
+  approvals
+    .command("trust")
+    .description("Grant the agent full autonomous control (security=full, ask=off)")
+    .action(async () => {
+      try {
+        await approvalsTrustCommand(defaultRuntime);
+      } catch (err) {
+        defaultRuntime.error(formatCliError(err));
+        defaultRuntime.exit(1);
+      }
+    });
 }

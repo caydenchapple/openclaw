@@ -57,6 +57,26 @@ export async function loadSessions(
   }
 }
 
+export type ChatModelsState = {
+  client: GatewayBrowserClient | null;
+  connected: boolean;
+  chatModels: Array<{ id: string; name: string; provider: string }>;
+};
+
+export async function loadChatModels(state: ChatModelsState) {
+  if (!state.client || !state.connected) {
+    return;
+  }
+  try {
+    const res = await state.client.request<{
+      models?: Array<{ id: string; name: string; provider: string }>;
+    }>("models.list", {});
+    state.chatModels = Array.isArray(res?.models) ? res.models : [];
+  } catch {
+    state.chatModels = [];
+  }
+}
+
 export async function patchSession(
   state: SessionsState,
   key: string,
@@ -65,6 +85,7 @@ export async function patchSession(
     thinkingLevel?: string | null;
     verboseLevel?: string | null;
     reasoningLevel?: string | null;
+    model?: string | null;
   },
 ) {
   if (!state.client || !state.connected) {
@@ -82,6 +103,9 @@ export async function patchSession(
   }
   if ("reasoningLevel" in patch) {
     params.reasoningLevel = patch.reasoningLevel;
+  }
+  if ("model" in patch) {
+    params.model = patch.model;
   }
   try {
     await state.client.request("sessions.patch", params);

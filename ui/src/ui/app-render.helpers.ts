@@ -6,6 +6,7 @@ import { syncUrlWithSessionKey } from "./app-settings.ts";
 import type { AppViewState } from "./app-view-state.ts";
 import { OpenClawApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
+import { patchSession } from "./controllers/sessions.ts";
 import { icons } from "./icons.ts";
 import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
@@ -79,6 +80,66 @@ export function renderTab(state: AppViewState, tab: Tab) {
       <span class="nav-item__icon" aria-hidden="true">${icons[iconForTab(tab)]}</span>
       <span class="nav-item__text">${titleForTab(tab)}</span>
     </a>
+  `;
+}
+
+function resolveCurrentSessionModel(state: AppViewState): string | null {
+  const session = state.sessionsResult?.sessions?.find((s) => s.key === state.sessionKey);
+  if (session?.model && session?.modelProvider) {
+    return `${session.modelProvider}/${session.model}`;
+  }
+  if (session?.model) {
+    return session.model;
+  }
+  return null;
+}
+
+function renderModelSelector(state: AppViewState) {
+  if (!state.chatModels.length) {
+    return html``;
+  }
+  const currentModel = resolveCurrentSessionModel(state);
+  const modelOptions = state.chatModels.map((m) => ({
+    value: `${m.provider}/${m.id}`,
+    label: m.name && m.name !== m.id ? `${m.name} (${m.provider})` : `${m.provider}/${m.id}`,
+  }));
+  return html`
+    <label class="field chat-controls__model">
+      <select
+        .value=${currentModel ?? ""}
+        ?disabled=${!state.connected}
+        title="Switch model"
+        @change=${async (e: Event) => {
+          const next = (e.target as HTMLSelectElement).value;
+          if (!next || next === currentModel) {
+            return;
+          }
+          await patchSession(
+            state as unknown as Parameters<typeof patchSession>[0],
+            state.sessionKey,
+            {
+              model: next,
+            },
+          );
+        }}
+      >
+        ${
+          currentModel
+            ? html``
+            : html`
+                <option value="" disabled selected>Model</option>
+              `
+        }
+        ${repeat(
+          modelOptions,
+          (o) => o.value,
+          (o) =>
+            html`<option value=${o.value} ?selected=${o.value === currentModel}>
+              ${o.label}
+            </option>`,
+        )}
+      </select>
+    </label>
   `;
 }
 
@@ -166,6 +227,7 @@ export function renderChatControls(state: AppViewState) {
           )}
         </select>
       </label>
+      ${renderModelSelector(state)}
       <button
         class="btn btn--sm btn--icon"
         ?disabled=${state.chatLoading || !state.connected}

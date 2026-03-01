@@ -55,6 +55,7 @@ import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import { deleteSessionAndRefresh, loadSessions, patchSession } from "./controllers/sessions.ts";
+import { browseHubSkills, installHubSkill, searchHubSkills } from "./controllers/skills-hub.ts";
 import {
   installSkill,
   loadSkills,
@@ -78,6 +79,7 @@ import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
+import { renderSkillsHub } from "./views/skills-hub.ts";
 import { renderSkills } from "./views/skills.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
@@ -873,22 +875,37 @@ export function renderApp(state: AppViewState) {
 
         ${
           state.tab === "skills"
-            ? renderSkills({
-                loading: state.skillsLoading,
-                report: state.skillsReport,
-                error: state.skillsError,
-                filter: state.skillsFilter,
-                edits: state.skillEdits,
-                messages: state.skillMessages,
-                busyKey: state.skillsBusyKey,
-                onFilterChange: (next) => (state.skillsFilter = next),
-                onRefresh: () => loadSkills(state, { clearMessages: true }),
-                onToggle: (key, enabled) => updateSkillEnabled(state, key, enabled),
-                onEdit: (key, value) => updateSkillEdit(state, key, value),
-                onSaveKey: (key) => saveSkillApiKey(state, key),
-                onInstall: (skillKey, name, installId) =>
-                  installSkill(state, skillKey, name, installId),
-              })
+            ? html`
+                ${renderSkills({
+                  loading: state.skillsLoading,
+                  report: state.skillsReport,
+                  error: state.skillsError,
+                  filter: state.skillsFilter,
+                  edits: state.skillEdits,
+                  messages: state.skillMessages,
+                  busyKey: state.skillsBusyKey,
+                  onFilterChange: (next) => (state.skillsFilter = next),
+                  onRefresh: () => loadSkills(state, { clearMessages: true }),
+                  onToggle: (key, enabled) => updateSkillEnabled(state, key, enabled),
+                  onEdit: (key, value) => updateSkillEdit(state, key, value),
+                  onSaveKey: (key) => saveSkillApiKey(state, key),
+                  onInstall: (skillKey, name, installId) =>
+                    installSkill(state, skillKey, name, installId),
+                })}
+                ${renderSkillsHub({
+                  loading: state.hubLoading,
+                  query: state.hubQuery,
+                  results: state.hubResults,
+                  error: state.hubError,
+                  installingSlug: state.hubInstallingSlug,
+                  installMessage: state.hubInstallMessage,
+                  onQueryChange: (q) => (state.hubQuery = q),
+                  onSearch: () => searchHubSkills(state),
+                  onBrowse: () => browseHubSkills(state),
+                  onInstall: (slug) =>
+                    installHubSkill(state, slug, () => loadSkills(state, { clearMessages: true })),
+                })}
+              `
             : nothing
         }
 

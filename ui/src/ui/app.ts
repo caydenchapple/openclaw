@@ -344,6 +344,26 @@ export class OpenClawApp extends LitElement {
   @state() skillsBusyKey: string | null = null;
   @state() skillMessages: Record<string, SkillMessage> = {};
 
+  @state() hubLoading = false;
+  @state() hubQuery = "";
+  @state() hubResults: Array<{
+    slug?: string;
+    displayName?: string;
+    summary?: string | null;
+    version?: string | null;
+    score?: number;
+    updatedAt?: number;
+    stats?: { downloads?: number; stars?: number };
+    latestVersion?: { version: string; changelog: string };
+  }> = [];
+  @state() hubError: string | null = null;
+  @state() hubInstallingSlug: string | null = null;
+  @state() hubInstallMessage: {
+    slug: string;
+    kind: "success" | "error";
+    message: string;
+  } | null = null;
+
   @state() debugLoading = false;
   @state() debugStatus: StatusSummary | null = null;
   @state() debugHealth: HealthSnapshot | null = null;
